@@ -23,19 +23,45 @@ public class SimpleMain {
         RedissonClient redissonClient = Redisson.create(config);
         System.out.println("redissonClient链接成功");
 
-        int leaseTime = 10;
-        lock(redissonClient, leaseTime);
+//        int leaseTime = 10;
+//        lock(redissonClient, leaseTime);
 
+        int leaseTime = 1;
+        lock1(redissonClient, leaseTime);
     }
 
+    private static void lock1(RedissonClient redissonClient, int leaseTime) {
+        String lock = "lock_00";
 
+        RLock rLock = redissonClient.getLock(lock);
+
+        System.out.println("现在锁锁住了吗" + rLock.isLocked());
+
+        rLock.lock(leaseTime,  TimeUnit.SECONDS);
+
+        System.out.println("现在锁锁住了吗" + rLock.isLocked());
+
+        for (int i=0;i<10;i++){
+            try {
+                Thread.sleep(300L);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            if (rLock.isLocked()){
+                System.out.println("加锁了" + i + "不能进行业务操作");
+            } else {
+                System.out.println("锁自动释放了" + i + "能进行业务操作");
+            }
+        }
+
+    }
     private static void lock(RedissonClient redissonClient, int leaseTime) {
 
         String lock = "lock_00";
 
         RLock rLock = redissonClient.getLock(lock);
         boolean locked0 = rLock.isLocked();
-        System.out.println("加锁了吗" + locked0);
+        System.out.println("现在锁锁住了吗" + locked0);
 
         for (int i=0;i<100;i++){
 
